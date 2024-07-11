@@ -20,7 +20,7 @@ jobs:
           git config --global user.name "github-actions"
 
       - name: Bump version and generate changelog
-        run: npx release-please
+        run: npx release-please release-pr
 
       - name: Push commit and tags
         run: git push --follow-tags
