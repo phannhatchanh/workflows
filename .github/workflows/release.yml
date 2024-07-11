@@ -1,24 +1,30 @@
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
 
-permissions:
-  contents: write
-  pull-requests: write
-
-name: release-please
-
+name: Release
 jobs:
-  release-please:
+  release:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: actions/checkout@v3
         with:
-          # this assumes that you have created a personal access token
-          # (PAT) and configured it as a GitHub action secret named
-          # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
-          token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
-          # this is a built-in strategy in release-please, see "Action Inputs"
-          # for more options
-          release-type: simple
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: Configure committer
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions"
+      - name: Bump version and generate changelog
+        run: npx standard-version
+
+      - name: Push commit and tags
+        run: git push --follow-tags
+
+      - name: Publish release note
+        run: npx changelogithub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
